@@ -10,23 +10,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-    const response = await fetch(url, {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
       body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: systemPrompt }]
-        },
-        contents: [
-          { role: 'user', parts: [{ text: userPrompt }] }
-        ],
-        generationConfig: {
-          maxOutputTokens: 800,
-          temperature: 0.8,
-        }
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
       }),
     });
 
@@ -36,7 +31,7 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: data.error?.message || '翻譯失敗' });
     }
 
-    const result = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const result = data.content?.[0]?.text?.trim();
     if (!result) {
       return res.status(500).json({ error: '無法取得譯文' });
     }
