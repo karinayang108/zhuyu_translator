@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>逐玉 · 穿越古今 文言文翻譯機</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&family=Noto+Serif+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Serif TC', 'Noto Serif', Georgia, serif;
+    background: #F8EDDA;
+    color: #3D1E0A;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 400;
+    color: #3D1E0A;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+  }
+
+  .h1-top {
+    font-family: 'Zhi Mang Xing', 'Ma Shan Zheng', serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.12em;
+    display: block;
+    text-shadow: 0 1px 6px rgba(61,30,10,0.1);
+  }
+
+  .h1-bottom {
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.15em;
+    display: block;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: rgba(61,30,10,0.55);
+    letter-spacing: 0.25em;
+  }
+
+  .divider-line {
+    width: 90px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(61,30,10,0.3), transparent);
+    margin: 0.9rem auto;
+  }
+
+  .card {
+    background: rgba(248,237,218,0.68);
+    border: 1px solid rgba(200,130,80,0.22);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* direction */
+  .direction-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .dir-label {
+    font-size: 12px;
+    color: rgba(61,30,10,0.6);
+    letter-spacing: 0.1em;
+  }
+
+  .toggle-wrap {
+    display: flex;
+    background: rgba(61,30,10,0.1);
+    border-radius: 99px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .dir-btn {
+    padding: 5px 16px;
+    border: none;
+    border-radius: 99px;
+    font-size: 12px;
+    font-family: 'Noto Serif TC', serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(61,30,10,0.7);
+    background: transparent;
+    letter-spacing: 0.06em;
+  }
+
+  .dir-btn.active {
+    background: #3D1E0A;
+    color: #F8EDDA;
+  }
+
+  /* roles */
+  .role-section { margin-bottom: 1.25rem; }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(61,30,10,0.55);
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+
+  .roles {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .role-btn {
+    flex: 1;
+    max-width: 300px;
+    padding: 12px 18px;
+    border: 1px solid rgba(200,130,80,0.35);
+    background: rgba(248,237,218,0.35);
+    border-radius: 14px;
+    font-family: 'Noto Serif TC', serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .role-btn:hover { background: rgba(248,237,218,0.55); }
+
+  .role-btn.active {
+    background: #3D1E0A;
+    border-color: #3D1E0A;
+  }
+
+  .role-name {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 4px;
+    color: #3D1E0A;
+  }
+
+  .role-sub {
+    font-size: 11px;
+    color: rgba(61,30,10,0.55);
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
+  .role-btn.active .role-name { color: #F8EDDA; }
+  .role-btn.active .role-sub  { color: rgba(248,237,218,0.72); }
+
+  /* input */
+  .translate-area { padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+
+  .area-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: rgba(61,30,10,0.55);
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .char-count { font-size: 11px; color: rgba(61,30,10,0.4); }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    color: #3D1E0A;
+    line-height: 1.9;
+    resize: none;
+    letter-spacing: 0.05em;
+  }
+
+  textarea::placeholder { color: rgba(61,30,10,0.35); }
+
+  /* button */
+  .btn-row { display: flex; justify-content: center; margin-bottom: 1rem; }
+
+  .translate-btn {
+    padding: 8px 32px 8px 38px;
+    background: #3D1E0A;
+    color: #F8EDDA;
+    border: none;
+    border-radius: 99px;
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.35em;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+  }
+
+  .translate-btn:hover   { background: #5C3018; }
+  .translate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* result */
+  .result-area { padding: 1.25rem 1.5rem; margin-bottom: 1rem; display: none; }
+  .result-area.show { display: block; }
+
+  .result-header {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: rgba(61,30,10,0.55);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .role-tag {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 99px;
+    background: rgba(61,30,10,0.1);
+    color: #3D1E0A;
+    letter-spacing: 0.05em;
+  }
+
+  .result-text {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    line-height: 2.1;
+    color: #3D1E0A;
+    letter-spacing: 0.08em;
+    white-space: pre-wrap;
+  }
+
+  .loading-text {
+    color: rgba(61,30,10,0.5);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(61,30,10,0.12);
+  }
+
+  .action-btn {
+    padding: 6px 16px;
+    background: transparent;
+    border: 1px solid rgba(61,30,10,0.2);
+    border-radius: 99px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    color: #3D1E0A;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover { background: rgba(61,30,10,0.06); }
+
+  .error-text {
+    color: #7a2010;
+    font-size: 13px;
+    text-align: center;
+    padding: 0.75rem 0;
+    letter-spacing: 0.04em;
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  /* examples */
+  .examples { margin-top: 2rem; }
+
+  .examples-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: rgba(61,30,10,0.5);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .example-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .chip {
+    padding: 7px 14px;
+    border: 1px solid rgba(200,130,80,0.3);
+    border-radius: 10px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 12px;
+    color: rgba(61,30,10,0.72);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(248,237,218,0.38);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .chip:hover {
+    background: rgba(248,237,218,0.65);
+    border-color: rgba(200,130,80,0.55);
+    color: #3D1E0A;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 15px;
+    color: rgba(61,30,10,0.3);
+    letter-spacing: 0.2em;
+  }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 1.85rem; }
+    .roles { flex-direction: column; align-items: stretch; }
+    .role-btn { max-width: 100%; }
+    .translate-btn { font-size: 16px; padding: 10px 38px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>
+      <span class="h1-top">逐玉 · 穿越古今</span>
+      <span class="h1-bottom">文言文翻譯機</span>
+    </h1>
+    <div class="divider-line"></div>
+    <p class="subtitle">現代白話 ↔ 古裝劇腔</p>
+  </header>
+
+  <div class="direction-toggle">
+    <span class="dir-label">翻譯方向</span>
+    <div class="toggle-wrap">
+      <button class="dir-btn active" id="dir-modern"    onclick="setDirection('modern')">現代 → 文言</button>
+      <button class="dir-btn"        id="dir-classical" onclick="setDirection('classical')">文言 → 現代</button>
+    </div>
+  </div>
+
+  <div class="role-section">
+    <p class="section-label">— 選擇說話身份 —</p>
+    <div class="roles">
+      <button class="role-btn active" data-role="marquis" onclick="setRole(this)">
+        <span class="role-name">謝征（武安侯）</span>
+        <span class="role-sub">冷峻將軍 · 言簡意賅 · 情深不露</span>
+      </button>
+      <button class="role-btn" data-role="heroine" onclick="setRole(this)">
+        <span class="role-name">樊長玉（女將）</span>
+        <span class="role-sub">豪爽颯爽 · 市井煙火 · 至死不渝</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card translate-area">
+    <div class="area-label">
+      <span id="input-label">輸入現代白話文</span>
+      <span class="char-count" id="char-count">0 字</span>
+    </div>
+    <textarea id="input-text" placeholder="例：我等你回來。" oninput="updateCount()"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="translate-btn" id="translate-btn" onclick="doTranslate()">譯文</button>
+  </div>
+
+  <div class="card result-area" id="result-area">
+    <div class="result-header">
+      <span id="result-label">古裝劇譯文</span>
+      <span class="role-tag" id="result-role-tag">謝征（武安侯）</span>
+    </div>
+    <p class="loading-text" id="loading-p">譯中，稍候⋯⋯</p>
+    <p class="result-text"  id="result-text"></p>
+    <p class="error-text"   id="error-text" style="display:none;"></p>
+    <div class="action-row" id="action-row" style="display:none;">
+      <button class="action-btn" id="copy-btn" onclick="copyResult()">複製譯文</button>
+    </div>
+  </div>
+
+  <div class="examples">
+    <p class="examples-label" id="examples-label">— 試試這些句子 —</p>
+    <div class="example-chips" id="example-chips"></div>
+  </div>
+
+  <footer>· 至死不渝 ·</footer>
+</div>
+
+<script>
+const EXAMPLES = {
+  modern: [
+    '我等你回來。',
+    '你為什麼要騙我？',
+    '我心裡只有你一個人。',
+    '別走了好嗎。',
+    '我願意陪你一輩子。',
+    '你憑什麼管我？',
+    '放開我！',
+    '我從來沒有後悔過。',
+  ],
+  classical: [
+    '樊氏長玉，乃吾終身之侶，絕不相負，至死不渝。',
+    '風雨如晦，雞鳴不已。既見君子，云胡不喜。',
+    '眾里尋他千百度，驀然回首，那人卻在，燈火闌珊處。',
+    '江畔何人初見月，江月何年初照人。',
+    '躬自厚而薄責於人，則遠怨矣。',
+    '既見君子，云胡不喜。',
+  ]
+};
+
+const ROLES = {
+  marquis: {
+    name: '謝征（武安侯）',
+    prompt: `你是《逐玉》中的武安侯謝征，字九衡，化名言正藏身市井，性格冷峻內斂、城府極深，外表淡漠實則情深義重，帶軍伍的剛硬之氣，偶爾流露深藏的溫柔。
+
+說話風格：文言文，言簡意賅，自稱「吾」，不輕易表露情感，每一字都有分量。
+
+參考台詞（模仿這個節奏和用字）：
+「吾名謝征，字九衡，出身軍伍，京城人士，封候武安，願以赤心，聘汝為婦，願一世長安，守歲月安寧。」
+「北雁南飛遍地鳳凰難下足。」
+「若是雁南渡，便是寄君書。」`
+  },
+  heroine: {
+    name: '樊長玉（女將）',
+    prompt: `你是《逐玉》中的樊長玉，屠戶之女、巾幗女將，性格豪爽坦率、勇敢堅毅，有市井的煙火氣也有女將的颯爽英姿，情感真摯直白，愛得轟烈。
+
+說話風格：半文半白，豪爽直率，自稱「吾」或「兒」，不扭捏，帶點市井的潑辣。
+
+參考台詞（模仿這個節奏和用字）：
+「父母容稟，樊氏長玉，林安人士。兒命在旦夕之時，為她所救；兒心如死水之際，得她所愛。兒在戰場十餘年，從不覺自己還活著；至她，方覺人間值得。此女，乃吾終身之侶！絕不相負！至死不渝。」`
+  }
+};
+
+let currentRole = 'marquis';
+let currentDirection = 'modern';
+let lastResult = '';
+
+function renderChips() {
+  const chips = EXAMPLES[currentDirection];
+  document.getElementById('example-chips').innerHTML =
+    chips.map(s => `<span class="chip" onclick="useExample(this)">${s}</span>`).join('');
+}
+
+function setRole(btn) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentRole = btn.dataset.role;
+  document.getElementById('result-role-tag').textContent = ROLES[currentRole].name;
+}
+
+function setDirection(dir) {
+  currentDirection = dir;
+  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('dir-' + dir).classList.add('active');
+  document.getElementById('input-text').value = '';
+  updateCount();
+  document.getElementById('result-area').classList.remove('show');
+  lastResult = '';
+
+  if (dir === 'modern') {
+    document.getElementById('input-label').textContent   = '輸入現代白話文';
+    document.getElementById('input-text').placeholder    = '例：我等你回來。';
+    document.getElementById('result-label').textContent  = '古裝劇譯文';
+    document.getElementById('examples-label').textContent = '— 試試這些句子 —';
+  } else {
+    document.getElementById('input-label').textContent   = '輸入文言文 / 古裝台詞';
+    document.getElementById('input-text').placeholder    = '例：吾心悅汝，汝可知曉？';
+    document.getElementById('result-label').textContent  = '現代白話譯文';
+    document.getElementById('examples-label').textContent = '— 劇中台詞，試試看 —';
+  }
+  renderChips();
+}
+
+function updateCount() {
+  document.getElementById('char-count').textContent =
+    document.getElementById('input-text').value.length + ' 字';
+}
+
+function useExample(el) {
+  document.getElementById('input-text').value = el.textContent;
+  updateCount();
+}
+
+function copyResult() {
+  if (!lastResult) return;
+  navigator.clipboard.writeText(lastResult).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '已複製 ✓';
+    setTimeout(() => { btn.textContent = '複製譯文'; }, 1600);
+  });
+}
+
+async function doTranslate() {
+  const inputText = document.getElementById('input-text').value.trim();
+  if (!inputText) return;
+
+  const btn = document.getElementById('translate-btn');
+  btn.disabled = true;
+  btn.textContent = '譯中⋯';
+
+  const resultArea = document.getElementById('result-area');
+  const resultText = document.getElementById('result-text');
+  const errorText  = document.getElementById('error-text');
+  const loadingP   = document.getElementById('loading-p');
+  const actionRow  = document.getElementById('action-row');
+
+  resultArea.classList.add('show');
+  loadingP.style.display = 'block';
+  resultText.textContent  = '';
+  errorText.style.display = 'none';
+  actionRow.style.display = 'none';
+  lastResult = '';
+  document.getElementById('result-role-tag').textContent = ROLES[currentRole].name;
+
+  const role = ROLES[currentRole];
+  let systemPrompt, userPrompt;
+
+  if (currentDirection === 'modern') {
+    systemPrompt = role.prompt + `\n\n任務：將現代白話中文翻譯成符合角色身份的文言文／古裝劇台詞。只輸出譯文，不加解釋、標題或引號。保留原句情感，用角色風格表達。`;
+    userPrompt   = `請將以下現代白話文翻譯成你（${role.name}）會說的古裝劇台詞：\n\n${inputText}`;
+  } else {
+    systemPrompt = `你是精通古今中文的翻譯，將文言文或古裝劇台詞翻成現代流暢白話中文。只輸出譯文，不加解釋或引號，語言要自然口語，保留原文的情感與詩意。`;
+    userPrompt   = `請將以下文言文翻譯成現代白話文：\n\n${inputText}`;
+  }
+
+  try {
+    const res = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ systemPrompt, userPrompt })
+    });
+    const data = await res.json();
+
+    if (data.result) {
+      lastResult = data.result;
+      loadingP.style.display  = 'none';
+      resultText.textContent  = lastResult;
+      actionRow.style.display = 'flex';
+    } else {
+      throw new Error(data.error || '無法取得譯文');
+    }
+  } catch (err) {
+    loadingP.style.display  = 'none';
+    errorText.style.display = 'block';
+    if (err.message.includes('fetch') || err.message.includes('Load failed') || err.message.includes('NetworkError')) {
+      errorText.textContent = '⚠ 尚未部署到 Vercel\n本地測試請執行：vercel dev\n或直接 push 到 GitHub 讓 Vercel 自動部署';
+    } else {
+      errorText.textContent = '⚠ 錯誤：' + err.message;
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '譯文';
+}
+
+document.getElementById('input-text').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') doTranslate();
+});
+
+renderChips();
+</script>
+</body>
+</html>
