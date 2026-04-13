@@ -233,7 +233,7 @@
   .translate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* result */
-  .result-area { padding: 1.25rem 1.5rem; margin-bottom: 1rem; display: none; }
+  .result-area { padding: 1.25rem 1.5rem; margin-bottom: 0.5rem; display: none; }
   .result-area.show { display: block; }
 
   .result-header {
@@ -255,6 +255,27 @@
     letter-spacing: 0.05em;
   }
 
+  .split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .split-left { }
+
+  .split-right {
+    border-left: 0.5px solid rgba(61,30,10,0.15);
+    padding-left: 1rem;
+  }
+
+  .split-col-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: rgba(61,30,10,0.4);
+    margin-bottom: 0.6rem;
+  }
+
   .result-text {
     font-family: 'Noto Serif TC', serif;
     font-size: 16px;
@@ -262,22 +283,11 @@
     color: #3D1E0A;
     letter-spacing: 0.08em;
     white-space: pre-wrap;
+    margin-bottom: 1rem;
   }
 
-  .loading-text {
-    color: rgba(61,30,10,0.5);
-    font-size: 13px;
-    letter-spacing: 0.2em;
-    text-align: center;
-    padding: 1rem 0;
-  }
-
-  .action-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(61,30,10,0.12);
+  .copy-row {
+    margin-top: 0.75rem;
   }
 
   .action-btn {
@@ -295,6 +305,41 @@
 
   .action-btn:hover { background: rgba(61,30,10,0.06); }
 
+  .anno-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .anno-row {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 5px 0;
+    border-bottom: 0.5px solid rgba(61,30,10,0.08);
+  }
+
+  .anno-row:last-child { border-bottom: none; }
+
+  .anno-char {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #3D1E0A;
+    min-width: 28px;
+    flex-shrink: 0;
+  }
+
+  .anno-meaning {
+    font-size: 12px;
+    color: rgba(61,30,10,0.65);
+    line-height: 1.5;
+  }
+
+  .loading-text {
+    color: rgba(61,30,10,0.5);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
   .error-text {
     color: #7a2010;
     font-size: 13px;
@@ -303,6 +348,23 @@
     letter-spacing: 0.04em;
     line-height: 1.8;
     white-space: pre-wrap;
+  }
+
+  .role-tagline {
+    text-align: center;
+    font-family: 'Ma Shan Zheng', serif;
+    font-size: 15px;
+    color: rgba(61,30,10,0.45);
+    letter-spacing: 0.12em;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+
+  .role-tagline.show { display: block; }
+
+  @media (max-width: 500px) {
+    .split-layout { grid-template-columns: 1fr; }
+    .split-right { border-left: none; border-top: 0.5px solid rgba(61,30,10,0.15); padding-left: 0; padding-top: 1rem; margin-top: 0.5rem; }
   }
 
   /* examples */
@@ -412,12 +474,25 @@
       <span class="role-tag" id="result-role-tag">謝征（武安侯）</span>
     </div>
     <p class="loading-text" id="loading-p">譯中，稍候⋯⋯</p>
-    <p class="result-text"  id="result-text"></p>
-    <p class="error-text"   id="error-text" style="display:none;"></p>
-    <div class="action-row" id="action-row" style="display:none;">
-      <button class="action-btn" id="copy-btn" onclick="copyResult()">複製譯文</button>
+    <p class="error-text" id="error-text" style="display:none;"></p>
+    <div id="split-content" style="display:none;">
+      <div class="split-layout">
+        <div class="split-left">
+          <div class="split-col-label">譯文</div>
+          <p class="result-text" id="result-text"></p>
+          <div class="copy-row">
+            <button class="action-btn" id="copy-btn" onclick="copyResult()">複製譯文</button>
+          </div>
+        </div>
+        <div class="split-right">
+          <div class="split-col-label">逐字注釋</div>
+          <div class="anno-list" id="anno-list"></div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <p class="role-tagline" id="role-tagline"></p>
 
   <div class="examples">
     <p class="examples-label" id="examples-label">— 試試這些句子 —</p>
@@ -476,6 +551,11 @@ let currentRole = 'marquis';
 let currentDirection = 'modern';
 let lastResult = '';
 
+const ROLE_TAGLINES = {
+  marquis: '趕快對你的樊長玉說吧！',
+  heroine: '趕快去對你的武安侯說！'
+};
+
 function renderChips() {
   const chips = EXAMPLES[currentDirection];
   document.getElementById('example-chips').innerHTML =
@@ -496,6 +576,7 @@ function setDirection(dir) {
   document.getElementById('input-text').value = '';
   updateCount();
   document.getElementById('result-area').classList.remove('show');
+  document.getElementById('role-tagline').classList.remove('show');
   lastResult = '';
 
   if (dir === 'modern') {
@@ -531,6 +612,28 @@ function copyResult() {
   });
 }
 
+function renderResult(translation, annotations) {
+  document.getElementById('result-text').textContent = translation;
+  const annoList = document.getElementById('anno-list');
+  if (annotations && annotations.length > 0) {
+    annoList.innerHTML = annotations.map(a =>
+      `<div class="anno-row">
+        <span class="anno-char">${a.char}</span>
+        <span class="anno-meaning">${a.meaning}</span>
+      </div>`
+    ).join('');
+  } else {
+    annoList.innerHTML = '<span style="font-size:12px;color:rgba(61,30,10,0.4);">－</span>';
+  }
+  document.getElementById('split-content').style.display = 'block';
+
+  if (currentDirection === 'modern') {
+    const tagline = document.getElementById('role-tagline');
+    tagline.textContent = ROLE_TAGLINES[currentRole];
+    tagline.classList.add('show');
+  }
+}
+
 async function doTranslate() {
   const inputText = document.getElementById('input-text').value.trim();
   if (!inputText) return;
@@ -539,17 +642,17 @@ async function doTranslate() {
   btn.disabled = true;
   btn.textContent = '譯中⋯';
 
-  const resultArea = document.getElementById('result-area');
-  const resultText = document.getElementById('result-text');
-  const errorText  = document.getElementById('error-text');
-  const loadingP   = document.getElementById('loading-p');
-  const actionRow  = document.getElementById('action-row');
+  const resultArea   = document.getElementById('result-area');
+  const errorText    = document.getElementById('error-text');
+  const loadingP     = document.getElementById('loading-p');
+  const splitContent = document.getElementById('split-content');
+  const tagline      = document.getElementById('role-tagline');
 
   resultArea.classList.add('show');
-  loadingP.style.display = 'block';
-  resultText.textContent  = '';
-  errorText.style.display = 'none';
-  actionRow.style.display = 'none';
+  loadingP.style.display     = 'block';
+  splitContent.style.display = 'none';
+  errorText.style.display    = 'none';
+  tagline.classList.remove('show');
   lastResult = '';
   document.getElementById('result-role-tag').textContent = ROLES[currentRole].name;
 
@@ -557,11 +660,19 @@ async function doTranslate() {
   let systemPrompt, userPrompt;
 
   if (currentDirection === 'modern') {
-    systemPrompt = role.prompt + `\n\n任務：將現代白話中文翻譯成符合角色身份的文言文／古裝劇台詞。只輸出譯文，不加解釋、標題或引號。保留原句情感，用角色風格表達。`;
-    userPrompt   = `請將以下現代白話文翻譯成你（${role.name}）會說的古裝劇台詞：\n\n${inputText}`;
+    systemPrompt = role.prompt + `
+
+任務：將現代白話中文翻譯成符合角色身份的文言文／古裝劇台詞，並提供逐字注釋。
+回傳格式：只能回傳純 JSON，不加任何解釋、markdown 符號或引號包裹。格式如下：
+{"translation":"譯文內容","annotations":[{"char":"字或詞","meaning":"白話解釋"},{"char":"字或詞","meaning":"白話解釋"}]}
+注意：annotations 只需列出有意思的文言字詞，不需要每個字都列，3到8個關鍵字即可。`;
+    userPrompt = `請將以下現代白話文翻譯成你（${role.name}）會說的古裝劇台詞，並附上逐字注釋：\n\n${inputText}`;
   } else {
-    systemPrompt = `你是精通古今中文的翻譯，將文言文或古裝劇台詞翻成現代流暢白話中文。只輸出譯文，不加解釋或引號，語言要自然口語，保留原文的情感與詩意。`;
-    userPrompt   = `請將以下文言文翻譯成現代白話文：\n\n${inputText}`;
+    systemPrompt = `你是精通古今中文的翻譯，將文言文或古裝劇台詞翻成現代流暢白話中文，並提供逐字注釋。
+回傳格式：只能回傳純 JSON，不加任何解釋、markdown 符號或引號包裹。格式如下：
+{"translation":"現代白話譯文","annotations":[{"char":"字或詞","meaning":"白話解釋"}]}
+annotations 列出3到8個關鍵文言字詞即可。`;
+    userPrompt = `請將以下文言文翻譯成現代白話文，並附上逐字注釋：\n\n${inputText}`;
   }
 
   try {
@@ -573,10 +684,16 @@ async function doTranslate() {
     const data = await res.json();
 
     if (data.result) {
-      lastResult = data.result;
-      loadingP.style.display  = 'none';
-      resultText.textContent  = lastResult;
-      actionRow.style.display = 'flex';
+      loadingP.style.display = 'none';
+      try {
+        const clean = data.result.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+        lastResult = parsed.translation || data.result;
+        renderResult(parsed.translation, parsed.annotations);
+      } catch {
+        lastResult = data.result;
+        renderResult(data.result, []);
+      }
     } else {
       throw new Error(data.error || '無法取得譯文');
     }
