@@ -663,12 +663,14 @@ async function doTranslate() {
     systemPrompt = role.prompt + `
 
 任務：將現代白話中文翻譯成符合角色身份的文言文／古裝劇台詞，並提供逐字注釋。
+重要：原文所有資訊必須完整保留在譯文中，不可省略任何細節，包括數量、時間、地點、程度等詞語。例如「幾天」須譯為「幾日」，「很多」須譯為「甚多」，不可省略。
 回傳格式：只能回傳純 JSON，不加任何解釋、markdown 符號或引號包裹。格式如下：
 {"translation":"譯文內容","annotations":[{"char":"字或詞","meaning":"白話解釋"},{"char":"字或詞","meaning":"白話解釋"}]}
 注意：annotations 只需列出有意思的文言字詞，不需要每個字都列，3到8個關鍵字即可。`;
     userPrompt = `請將以下現代白話文翻譯成你（${role.name}）會說的古裝劇台詞，並附上逐字注釋：\n\n${inputText}`;
   } else {
     systemPrompt = `你是精通古今中文的翻譯，將文言文或古裝劇台詞翻成現代流暢白話中文，並提供逐字注釋。
+重要：原文所有資訊必須完整保留在譯文中，不可省略任何細節，包括數量、時間、地點、程度等詞語。
 回傳格式：只能回傳純 JSON，不加任何解釋、markdown 符號或引號包裹。格式如下：
 {"translation":"現代白話譯文","annotations":[{"char":"字或詞","meaning":"白話解釋"}]}
 annotations 列出3到8個關鍵文言字詞即可。`;
